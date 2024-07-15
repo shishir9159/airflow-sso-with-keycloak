@@ -1,3 +1,8 @@
+// This is the Mermaid configuration
+// gantt
+// dataviewjs
+
+// To leverage the available time format in the chart using "moment", we need file creation time in minutes format
 let creationTimeinMinutes = dv.current().file.ctime.c.hour * 60 + dv.current().file.ctime.c.minute
 
 const creationTime = moment.utc().startOf('day').add(creationTimeinMinutes, 'minutes').format('HH:mm')
@@ -10,7 +15,6 @@ function timeValidation(task) {
 
 function stripTitleFromLinks(taskAssociatedNoteLinks) {
 
-	let flag = 0
 	let title = ""
 	for (let i=0; i < taskAssociatedNoteLinks.length-1; i++) {
 		if (taskAssociatedNoteLinks[i] == '[' && taskAssociatedNoteLinks[i+1] == '[') {
@@ -75,430 +79,87 @@ gantt
     tickInterval 2h
     todayMarker off
 `
-// Initial milestone
 
-var urgentTasks = "section Urgent\n";
-for (let i = 0; i < urgent.length; i++) {
+function taskParser(flag, task, taskSection) {
 
-	if (!urgent[i].text.length)
-		continue
+	var tasks = "section " + task + "\n";
+	for (let i = 0; i < taskSection.length; i++) {
 
-	let startingTime = urgent[i].text.slice(0, 5)
-	let finishingTime = urgent[i].text.slice(8, 13)
+		if (!taskSection[i].text.length)
+			continue
 
-	let taskDescription, timeBudget;
+		let startingTime = taskSection[i].text.slice(0, 5)
+		let finishingTime = taskSection[i].text.slice(8, 13)
 
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = urgent[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = urgent[i].text
+		let taskDescription, timeBudget;
+
+		if (timeValidation(startingTime) && timeValidation(finishingTime)) {
+			taskDescription = taskSection[i].text.substring(14)
+			timeBudget = timeLimit(startingTime, finishingTime) + "m"
+		} else {
+			startingTime = creationTime
+			timeBudget = defaultTimeBudget
+			taskDescription = taskSection[i].text
+		}
+
+		taskDescription = taskDescription.split(':')[0]
+
+		if (taskDescription.indexOf('|') != -1)
+			taskDescription = stripTitleFromLinks(taskDescription)
+
+		tasks = tasks + taskDescription + flag + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
 	}
 
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	urgentTasks = urgentTasks + taskDescription + " : crit, active, " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
+	return tasks
 }
 
-for (let i = 0; i < urgentCompleted.length; i++) {
-
-	if (!urgentCompleted[i].text.length)
-		continue
-
-	let startingTime = urgentCompleted[i].text.slice(0, 5)
-	let finishingTime = urgentCompleted[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = urgentCompleted[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = urgentCompleted[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	urgentTasks = urgentTasks + taskDescription + " : crit, done, " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-var overdueTasks = "section Overdue\n";
-for (let i = 0; i < overdue.length; i++) {
-
-	if (!overdue[i].text.length)
-		continue
-
-	let startingTime = overdue[i].text.slice(0, 5)
-	let finishingTime = overdue[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = overdue[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = overdue[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	overdueTasks = overdueTasks + taskDescription + " : " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-for (let i = 0; i < overdueCompleted.length; i++) {
-
-	if (!overdueCompleted[i].text.length)
-		continue
-
-	let startingTime = overdueCompleted[i].text.slice(0, 5)
-	let finishingTime = overdueCompleted[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = overdueCompleted[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = overdueCompleted[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	overdueTasks = overdueTasks + taskDescription + " : done, " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-var ongoingProjectTasks = "section Ongoing Project\n";
-for (let i = 0; i < ongoingProject.length; i++) {
-
-	if (!ongoingProject[i].text.length)
-		continue
-
-	let startingTime = ongoingProject[i].text.slice(0, 5)
-	let finishingTime = ongoingProject[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = ongoingProject[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = ongoingProject[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	ongoingProjectTasks = ongoingProjectTasks + taskDescription + " : "  + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-for (let i = 0; i < ongoingProjectCompleted.length; i++) {
-
-	if (!ongoingProjectCompleted[i].text.length)
-		continue
-
-	let startingTime = ongoingProjectCompleted[i].text.slice(0, 5)
-	let finishingTime = ongoingProjectCompleted[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = ongoingProject[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = ongoingProjectCompleted[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	ongoingProjectTasks = ongoingProjectTasks + taskDescription + " : done, "  + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-var readingTasks = "section Reading\n";
-for (let i = 0; i < reading.length; i++) {
-
-	if (!reading[i].text.length)
-		continue
-
-	let startingTime = reading[i].text.slice(0, 5)
-	let finishingTime = reading[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = reading[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = reading[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	readingTasks = readingTasks + taskDescription + " : "  + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-for (let i = 0; i < readingCompleted.length; i++) {
-
-	if (!readingCompleted[i].text.length)
-		continue
-
-	let startingTime = readingCompleted[i].text.slice(0, 5)
-	let finishingTime = readingCompleted[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = readingCompleted[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = readingCompleted[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	readingTasks = readingTasks + taskDescription + " : done, "  + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-var todoTasks = "section To-Do\n";
-for (let i = 0; i < todo.length; i++) {
-
-	if (!todo[i].text.length)
-		continue
-
-	let startingTime = todo[i].text.slice(0, 5)
-	let finishingTime = todo[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = todo[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = todo[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	todoTasks = todoTasks + taskDescription + " : active, " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-for (let i = 0; i < todoCompleted.length; i++) {
-
-	if (!todoCompleted[i].text.length)
-		continue
-
-	let startingTime = todoCompleted[i].text.slice(0, 5)
-	let finishingTime = todoCompleted[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = todoCompleted[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = todoCompleted[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	todoTasks = todoTasks + taskDescription + " : active, done, " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-var choreTasks = "section Chore\n";
-for (let i = 0; i < chore.length; i++) {
-
-	if (!chore[i].text.length)
-		continue
-
-	let startingTime = chore[i].text.slice(0, 5)
-	let finishingTime = chore[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = chore[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = chore[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	choreTasks = choreTasks + taskDescription + " : " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-for (let i = 0; i < choreCompleted.length; i++) {
-
-	if (!choreCompleted[i].text.length)
-		continue
-
-	let startingTime = choreCompleted[i].text.slice(0, 5)
-	let finishingTime = choreCompleted[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = choreCompleted[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = choreCompleted[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	choreTasks = choreTasks + taskDescription + " : done, " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-var habitTasks = "section Habit\n";
-for (let i = 0; i < habit.length; i++) {
-
-	if (!habit[i].text.length)
-		continue
-
-	let startingTime = habit[i].text.slice(0, 5)
-	let finishingTime = habit[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = habit[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = habit[i].text
-	}
-
-	taskDescription = taskDescription.split(':')[0]
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	habitTasks = habitTasks + taskDescription + " : " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-for (let i = 0; i < habitCompleted.length; i++) {
-
-	if (!habitCompleted[i].text.length)
-		continue
-
-	let startingTime = habitCompleted[i].text.slice(0, 5)
-	let finishingTime = habitCompleted[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = habitCompleted[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = habitCompleted[i].text
-	}
-
-	taskDescription = taskDescription.split(':')[0]
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	habitTasks = habitTasks + taskDescription + " : done, " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-var lyreTasks = "section Lyre\n";
-for (let i = 0; i < lyre.length; i++) {
-
-	if (!lyre[i].text.length)
-		continue
-
-	let startingTime = lyre[i].text.slice(0, 5)
-	let finishingTime = lyre[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = lyre[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = lyre[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	lyreTasks = lyreTasks + taskDescription + " : " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
-}
-
-for (let i = 0; i < lyreCompleted.length; i++) {
-
-	if (!lyreCompleted[i].text.length)
-		continue
-
-	let startingTime = lyreCompleted[i].text.slice(0, 5)
-	let finishingTime = lyreCompleted[i].text.slice(8, 13)
-
-	let taskDescription, timeBudget;
-
-	if (timeValidation(startingTime) && timeValidation(finishingTime)) {
-		taskDescription = lyreCompleted[i].text.substring(14)
-		timeBudget = timeLimit(startingTime, finishingTime) + "m"
-	} else {
-		startingTime = creationTime
-		timeBudget = defaultTimeBudget
-		taskDescription = lyreCompleted[i].text
-	}
-
-	if (taskDescription.indexOf('|') != -1)
-		taskDescription = stripTitleFromLinks(taskDescription)
-
-	lyreTasks = lyreTasks + taskDescription + " : done, " + creationDate + ", " + startingTime + " , " + timeBudget + "\n"
+const sectionName = ["Urgent", "Overdue", "Ongoing Project", "Reading", "To-Do", "Chore", "Habit", "Lyre"]
+
+const taskMap = new Map();
+
+const taskFlag = new Map([
+	["Urgent", " : crit, active, "],
+	["Overdue", " : "],
+	["Ongoing Project", " : "],
+	["Reading", " : "],
+	["To-Do", " : active, "],
+	["Chore", " : "],
+	["Habit", " : "],
+	["Lyre", " : "],
+  ]);
+
+const taskCompletedFlag = new Map([
+	["Urgent", " : crit, done, "],
+	["Overdue", " : done, "],
+	["Ongoing Project", " : done, "],
+	["Reading", " : done, "],
+	["To-Do", " : active, done, "],
+	["Chore", " : done, "],
+	["Habit", " : done, "],
+	["Lyre", " : done, "],
+  ]);
+
+for (let i = 0; i < sectionName.length; i++) {
+
+	const taskSection = dv.current().file.tasks.where(t => !t.completed).filter(task => task.header.subpath == sectionName[i])
+	const taskCompleted = dv.current().file.tasks.where(t => t.completed).filter(task => task.header.subpath == sectionName[i])
+
+	const tasks = taskParser(taskFlag.get(sectionName[i]), sectionName[i], taskSection)
+	tasks += taskParser(taskCompletedFlag.get(sectionName[i]), sectionName[i], taskCompleted)
+
+	taskMap.set(sectionName[i], tasks)
 }
 
 const backticks = "```"
 
 dv.paragraph(
 `${backticks}${mermaidConf}
-${urgentTasks}
-${overdueTasks}
-${ongoingProjectTasks}
-${readingTasks}
-${todoTasks}
-${choreTasks}
-${habitTasks}
-${lyreTasks}
-${backticks}`,)
+${taskMap.get("Urgent")}
+${taskMap.get("Overdue")}
+${taskMap.get("Ongoing Project")}
+${taskMap.get("Reading")}
+${taskMap.get("To-Do")}
+${taskMap.get("Chore")}
+${taskMap.get("Habit")}
+${taskMap.get("Lyre")}
+`,)
