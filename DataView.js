@@ -1,9 +1,4 @@
-// This is the Mermaid configuration
-// gantt
-// dataviewjs
-
-// To leverage the available time format in the chart using "moment", we need file creation time in minutes format
-let creationTimeinMinutes = dv.current().file.ctime.c.hour * 60 + dv.current().file.ctime.c.minute
+const creationTimeinMinutes = dv.current().file.ctime.c.hour * 60 + dv.current().file.ctime.c.minute
 
 const creationTime = moment.utc().startOf('day').add(creationTimeinMinutes, 'minutes').format('HH:mm')
 
@@ -38,39 +33,6 @@ function timeLimit(startingTime, finishingTime) {
 
 const defaultTimeBudget = "30m"
 
-const urgent = dv.current().file.tasks.where(t => !t.completed).filter(task => task.header.subpath == "Urgent")
-
-const urgentCompleted = dv.current().file.tasks.where(t => t.completed).filter(task => task.header.subpath == "Urgent")
-
-const overdue = dv.current().file.tasks.where(t => !t.completed).filter(task => task.header.subpath == "Overdue")
-
-const overdueCompleted = dv.current().file.tasks.where(t => t.completed).filter(task => task.header.subpath == "Overdue")
-
-const ongoingProject = dv.current().file.tasks.where(t => !t.completed).filter(task => task.header.subpath == "Ongoing Project")
-
-const ongoingProjectCompleted = dv.current().file.tasks.where(t => t.completed).filter(task => task.header.subpath == "Ongoing Project")
-
-const reading = dv.current().file.tasks.where(t => !t.completed).filter(task => task.header.subpath == "Reading")
-
-const readingCompleted = dv.current().file.tasks.where(t => t.completed).filter(task => task.header.subpath == "Reading")
-
-const todo = dv.current().file.tasks.where(t => !t.completed).filter(task => task.header.subpath == "To-Do")
-
-const todoCompleted = dv.current().file.tasks.where(t => t.completed).filter(task => task.header.subpath == "To-Do")
-
-const chore = dv.current().file.tasks.where(t => !t.completed).filter(task => task.header.subpath == "Chore")
-
-const choreCompleted = dv.current().file.tasks.where(t => t.completed).filter(task => task.header.subpath == "Chore")
-
-const habit = dv.current().file.tasks.where(t => !t.completed).filter(task => task.header.subpath == "Habit")
-
-const habitCompleted = dv.current().file.tasks.where(t => t.completed).filter(task => task.header.subpath == "Habit")
-
-const lyre = dv.current().file.tasks.where(t => !t.completed).filter(task => task.header.subpath == "Lyre")
-
-const lyreCompleted = dv.current().file.tasks.where(t => t.completed).filter(task => task.header.subpath == "Lyre")
-
-// This is the Mermaid configuration.
 const mermaidConf = `mermaid
 gantt
     title Daily Tasks Diagram
@@ -79,7 +41,6 @@ gantt
     tickInterval 2h
     todayMarker off
 `
-
 function taskParser(flag, task, taskSection) {
 
 	var tasks = "section " + task + "\n";
@@ -113,9 +74,9 @@ function taskParser(flag, task, taskSection) {
 	return tasks
 }
 
-const sectionName = ["Urgent", "Overdue", "Ongoing Project", "Reading", "To-Do", "Chore", "Habit", "Lyre"]
+var taskMap = new Map();
 
-const taskMap = new Map();
+const sectionName = ["Urgent", "Overdue", "Ongoing Project", "Reading", "To-Do", "Chore", "Habit", "Lyre"]
 
 const taskFlag = new Map([
 	["Urgent", " : crit, active, "],
@@ -144,7 +105,7 @@ for (let i = 0; i < sectionName.length; i++) {
 	const taskSection = dv.current().file.tasks.where(t => !t.completed).filter(task => task.header.subpath == sectionName[i])
 	const taskCompleted = dv.current().file.tasks.where(t => t.completed).filter(task => task.header.subpath == sectionName[i])
 
-	const tasks = taskParser(taskFlag.get(sectionName[i]), sectionName[i], taskSection)
+	var tasks = taskParser(taskFlag.get(sectionName[i]), sectionName[i], taskSection)
 	tasks += taskParser(taskCompletedFlag.get(sectionName[i]), sectionName[i], taskCompleted)
 
 	taskMap.set(sectionName[i], tasks)
